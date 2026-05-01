@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Edit Batch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('faculty.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('faculty.batch_detail', batch_id=batch.id) }}">{{ batch.course_id }} / {{ batch.slo.code }}</a>
+        </li>
+        <li class="breadcrumb-item active">Edit Batch</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-secondary text-white fw-bold">
+        <i class="bi bi-pencil"></i> Edit Batch Metadata
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Student Learning Outcome</label>
+            <select name="slo_id" class="form-select">
+              {% for cs in slos %}
+                <option value="{{ cs.slo.id }}" {% if cs.slo.id == batch.slo_id %}selected{% endif %}>
+                  {{ cs.slo.code }} — {{ cs.slo.summary }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Outcome Assessed</label>
+            <input type="text" name="outcome_assessed" class="form-control"
+                   value="{{ batch.outcome_assessed or '' }}">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Action Taken</label>
+            <input type="text" name="action_taken" class="form-control"
+                   value="{{ batch.action_taken or '' }}">
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-secondary flex-grow-1">Save Changes</button>
+            <a href="{{ url_for('faculty.batch_detail', batch_id=batch.id) }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}New Assessment Batch{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('faculty.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">New Batch</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white fw-bold">
+        <i class="bi bi-plus-circle"></i> New Assessment Batch
+      </div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('faculty.batch_new') }}">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Course <span class="text-danger">*</span></label>
+            <select name="course_id" id="course_id" class="form-select" required
+                    hx-get="/htmx/slos/{value}"
+                    hx-target="#slo-options"
+                    hx-trigger="change"
+                    hx-swap="innerHTML">
+              <option value="">— Select a course —</option>
+              {% for c in courses %}
+                <option value="{{ c.id }}" {% if selected_course == c.id %}selected{% endif %}>
+                  {{ c.id }} — {{ c.name }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="form-text">HTMX will load outcomes automatically when you pick a course.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Semester <span class="text-danger">*</span></label>
+            <select name="semester_id" class="form-select" required>
+              {% for s in semesters %}
+                <option value="{{ s.id }}" {% if s.id == selected_sem %}selected{% endif %}>
+                  {{ s.label }}{% if s.is_active %} (Active){% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Student Learning Outcome <span class="text-danger">*</span></label>
+            <select name="slo_id" id="slo_id" class="form-select" required>
+              <option value="">— Select a course first —</option>
+              {% for cs in course_slos %}
+                <option value="{{ cs.slo.id }}">{{ cs.slo.code }} — {{ cs.slo.summary }}</option>
+              {% endfor %}
+            </select>
+            <div id="slo-options" style="display:none"></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Outcome Assessed</label>
+            <input type="text" name="outcome_assessed" class="form-control"
+                   placeholder="e.g., Complex Problem Solving">
+            <div class="form-text">Optional — leave blank to use the SLO summary.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Action Taken</label>
+            <input type="text" name="action_taken" class="form-control"
+                   placeholder="e.g., Evaluation, Capstone Project">
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success flex-grow-1">
+              <i class="bi bi-check-circle"></i> Create Batch
+            </button>
+            <a href="{{ url_for('faculty.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Wire up HTMX course → SLO dropdown swap
+document.getElementById('course_id').addEventListener('change', function() {
+  const courseId = this.value;
+  if (!courseId) {
+    document.getElementById('slo_id').innerHTML = '<option value="">— Select a course first —</option>';
+    return;
+  }
+  fetch('/htmx/slos/' + encodeURIComponent(courseId))
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById('slo_id').innerHTML = html;
+    });
+});
+</script>
+{% endblock %}

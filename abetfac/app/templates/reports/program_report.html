@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Program Report{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart"></i> Program-Level Assessment Report</h4>
+        <p class="text-muted small mb-0">Average scores by SLO across all courses and faculty</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <form method="get" class="d-flex gap-2 align-items-center">
+          <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Semesters</option>
+            {% for s in semesters %}
+              <option value="{{ s.id }}" {% if s.id == sem_filter %}selected{% endif %}>{{ s.label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <a href="{{ url_for('reports.export_all') }}{% if sem_filter %}?semester_id={{ sem_filter }}{% endif %}"
+           class="btn btn-sm btn-success">
+          <i class="bi bi-file-earmark-excel"></i> Export Excel
+        </a>
+      </div>
+    </div>
+
+    {% if slo_avgs %}
+    {% for slo_code, data in slo_avgs.items() %}
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light d-flex justify-content-between">
+        <span>
+          <span class="badge bg-info text-dark me-2">{{ slo_code }}</span>
+          Average Scores
+        </span>
+        <span class="text-muted small fw-normal">{{ data.count }} student records</span>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Rubric Criterion</th>
+              <th class="text-center" style="width:100px">Avg</th>
+              <th>Score Bar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for criterion in criteria %}
+            {% set avg = data.fields.get(criterion.code) %}
+            <tr>
+              <td class="small fw-semibold">{{ criterion.label }}</td>
+              <td class="text-center">
+                {% if avg %}
+                  <span class="score-badge score-{{ avg|round|int }}">{{ avg }}</span>
+                {% else %}<span class="text-muted">—</span>{% endif %}
+              </td>
+              <td>
+                {% if avg %}
+                <div class="progress" style="height:14px">
+                  <div class="progress-bar
+                    {% if avg >= 3.5 %}bg-success{% elif avg >= 2.5 %}bg-primary
+                    {% elif avg >= 1.5 %}bg-warning{% else %}bg-danger{% endif %}"
+                    style="width:{{ (avg/4*100)|int }}%">{{ avg }}</div>
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="alert alert-info">No assessment data found. Import enrollments and create some assessment batches first.</div>
+    {% endif %}
+
+    <!-- Batch summary table -->
+    <h5 class="fw-bold mt-4 mb-2">All Batches</h5>
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover table-sm mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>Faculty</th>
+                <th>SLO</th>
+                <th class="text-center">Assessed</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for batch in batches %}
+              <tr>
+                <td class="fw-semibold">{{ batch.course_id }}</td>
+                <td>{{ batch.semester.label }}</td>
+                <td>{{ batch.faculty.display_name }}</td>
+                <td><span class="badge bg-info text-dark">{{ batch.slo.code }}</span></td>
+                <td class="text-center">{{ batch.assessed_count }}</td>
+                <td>
+                  <a href="{{ url_for('faculty.batch_detail', batch_id=batch.id) }}"
+                     class="btn btn-sm btn-outline-primary py-0 px-2">View</a>
+                  <a href="{{ url_for('reports.course_report', course_id=batch.course_id) }}"
+                     class="btn btn-sm btn-outline-secondary py-0 px-2">Course Report</a>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No batches found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

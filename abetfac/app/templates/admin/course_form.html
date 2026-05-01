@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}{% if course %}Edit Course{% else %}New Course{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.courses') }}">Courses</a></li>
+        <li class="breadcrumb-item active">{% if course %}{{ course.id }}{% else %}New{% endif %}</li>
+      </ol>
+    </nav>
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold {% if course %}bg-secondary text-white{% else %}bg-success text-white{% endif %}">
+        {% if course %}Edit: {{ course.id }} — {{ course.name }}{% else %}New Course{% endif %}
+      </div>
+      <div class="card-body">
+        {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+        <form method="post">
+
+          {% if not course %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Course ID <span class="text-danger">*</span></label>
+            <input type="text" name="id" class="form-control" required autofocus
+                   placeholder="e.g., CE 262">
+          </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Course Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" required
+                   value="{{ course.name if course else '' }}"
+                   {% if not course %}autofocus{% endif %}>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Credit Hours</label>
+              <input type="number" name="credit_hours" class="form-control" min="1" max="6"
+                     value="{{ course.credit_hours if course else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Schedule Type</label>
+              <input type="text" name="schedule_type" class="form-control"
+                     placeholder="Lecture, Laboratory, etc."
+                     value="{{ course.schedule_type if course else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Program</label>
+              <select name="program_id" class="form-select">
+                <option value="">— None —</option>
+                {% for p in programs %}
+                  <option value="{{ p.id }}"
+                          {% if course and course.program_id == p.id %}selected{% endif %}>
+                    {{ p.code }} — {{ p.full_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Special Attributes</label>
+              <input type="text" name="special_attributes" class="form-control"
+                     value="{{ course.special_attributes if course else '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Core Designations</label>
+              <input type="text" name="core_designations" class="form-control"
+                     placeholder="Writing, Oral Comm, etc."
+                     value="{{ course.core_designations if course else '' }}">
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Student Learning Outcomes (SLOs)</label>
+            <div class="border rounded p-3">
+              <div class="row g-2">
+                {% for slo in slos %}
+                <div class="col-md-6">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="slo_ids"
+                           value="{{ slo.id }}" id="slo_{{ slo.id }}"
+                           {% if slo.id in course_slo_ids %}checked{% endif %}>
+                    <label class="form-check-label" for="slo_{{ slo.id }}">
+                      <span class="badge bg-info text-dark me-1">{{ slo.code }}</span>
+                      {{ slo.summary }}
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="form-text">Select all outcomes assessed in this course.</div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-{% if course %}secondary{% else %}success{% endif %} flex-grow-1">
+              {% if course %}Save Changes{% else %}Create Course{% endif %}
+            </button>
+            <a href="{{ url_for('admin.courses') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <h4 class="fw-bold mb-3"><i class="bi bi-gear"></i> Admin Dashboard</h4>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card text-center border-primary shadow-sm">
+          <div class="card-body">
+            <div class="display-5 fw-bold text-primary">{{ stats.users }}</div>
+            <div class="text-muted small">Faculty Users</div>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary mt-2">Manage</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-info shadow-sm">
+          <div class="card-body">
+            <div class="display-5 fw-bold text-info">{{ stats.courses }}</div>
+            <div class="text-muted small">Courses</div>
+            <a href="{{ url_for('admin.courses') }}" class="btn btn-sm btn-outline-info mt-2">Manage</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-success shadow-sm">
+          <div class="card-body">
+            <div class="display-5 fw-bold text-success">{{ stats.students }}</div>
+            <div class="text-muted small">Students</div>
+            <a href="{{ url_for('admin.import_enrollments') }}" class="btn btn-sm btn-outline-success mt-2">Import</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-secondary shadow-sm">
+          <div class="card-body">
+            <div class="display-5 fw-bold text-secondary">{{ stats.semesters }}</div>
+            <div class="text-muted small">Semesters</div>
+            <a href="{{ url_for('admin.semesters') }}" class="btn btn-sm btn-outline-secondary mt-2">Manage</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if active_sem %}
+    <div class="alert alert-success">
+      <i class="bi bi-calendar-check"></i> Active semester: <strong>{{ active_sem.label }}</strong>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+      <i class="bi bi-exclamation-triangle"></i> No active semester set.
+      <a href="{{ url_for('admin.semesters') }}">Set one now.</a>
+    </div>
+    {% endif %}
+
+    <div class="list-group shadow-sm">
+      <a href="{{ url_for('admin.users') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-people fs-4 text-primary"></i>
+        <div><strong>Manage Users</strong><br><small class="text-muted">Create and edit faculty accounts</small></div>
+      </a>
+      <a href="{{ url_for('admin.import_enrollments') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-upload fs-4 text-success"></i>
+        <div><strong>Import Enrollment Data</strong><br><small class="text-muted">Upload CSV with student roster for a semester</small></div>
+      </a>
+      <a href="{{ url_for('admin.semesters') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-calendar3 fs-4 text-info"></i>
+        <div><strong>Manage Semesters</strong><br><small class="text-muted">Add semesters and set the active one</small></div>
+      </a>
+      <a href="{{ url_for('admin.courses') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-book fs-4 text-secondary"></i>
+        <div><strong>Manage Courses</strong><br><small class="text-muted">Edit courses and their SLO mappings</small></div>
+      </a>
+      <a href="{{ url_for('reports.program_report') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-bar-chart fs-4 text-warning"></i>
+        <div><strong>Program-Level Report</strong><br><small class="text-muted">View aggregate assessment results across all faculty</small></div>
+      </a>
+      <a href="{{ url_for('reports.export_all') }}" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+        <i class="bi bi-file-earmark-excel fs-4 text-success"></i>
+        <div><strong>Export All Data (Excel)</strong><br><small class="text-muted">Download complete assessment data for all semesters</small></div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

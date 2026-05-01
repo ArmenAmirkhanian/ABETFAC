@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h4 class="fw-bold mb-0"><i class="bi bi-people"></i> Faculty Users</h4>
+      <a href="{{ url_for('admin.user_new') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> New User
+      </a>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Display Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Created</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for u in users %}
+            <tr {% if u.id == current_user.id %}class="table-primary"{% endif %}>
+              <td class="fw-semibold">
+                {{ u.display_name }}
+                {% if u.id == current_user.id %}<span class="badge bg-light text-dark border ms-1">You</span>{% endif %}
+                {% if u.force_password_reset %}<span class="badge bg-warning text-dark ms-1" title="Must change password">Reset</span>{% endif %}
+              </td>
+              <td>{{ u.username }}</td>
+              <td class="text-muted small">{{ u.email or '—' }}</td>
+              <td>
+                {% if u.is_admin %}
+                  <span class="badge bg-danger">Admin</span>
+                {% else %}
+                  <span class="badge bg-secondary">Faculty</span>
+                {% endif %}
+              </td>
+              <td class="text-muted small">{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '—' }}</td>
+              <td class="text-center" style="white-space:nowrap">
+                <a href="{{ url_for('admin.user_edit', user_id=u.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {% if u.id != current_user.id %}
+                <form method="post" style="display:inline"
+                      action="{{ url_for('admin.user_delete', user_id=u.id) }}"
+                      onsubmit="return confirm('Delete user {{ u.display_name }}?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

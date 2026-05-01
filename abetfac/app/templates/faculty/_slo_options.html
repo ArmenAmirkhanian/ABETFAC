@@ -1,0 +1,7 @@
+<option value="">— Select an outcome —</option>
+{% for cs in course_slos %}
+  <option value="{{ cs.slo.id }}">{{ cs.slo.code }} — {{ cs.slo.summary }}</option>
+{% endfor %}
+{% if not course_slos %}
+  <option value="" disabled>No outcomes mapped to this course</option>
+{% endif %}

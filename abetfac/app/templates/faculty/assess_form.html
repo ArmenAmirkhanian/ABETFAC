@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}{% if detail %}Edit Assessment{% else %}Score Student{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('faculty.dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('faculty.batch_detail', batch_id=batch.id) }}">
+            {{ batch.course_id }} / {{ batch.slo.code }}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">{% if detail %}Edit{% else %}New Score{% endif %}</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold {% if detail %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+        <i class="bi bi-pencil-square"></i>
+        {% if detail %}Edit Assessment — {{ detail.student.full_name }}
+        {% else %}Score a Student — {{ batch.course_id }}, {{ batch.semester.label }}, {{ batch.slo.code }}
+        {% endif %}
+      </div>
+
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data" id="rubric-form"
+              data-batch-id="{{ batch.id }}">
+
+          <!-- Student + Grade row -->
+          <div class="row g-3 mb-4 pb-3 border-bottom">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
+              {% if detail %}
+                <input type="hidden" name="student_id" value="{{ detail.student_id }}">
+                <p class="form-control-plaintext fw-bold">
+                  {{ detail.student.last_name }}, {{ detail.student.first_name }}
+                  <small class="text-muted">({{ detail.student.elearn_id }})</small>
+                </p>
+              {% else %}
+                <select name="student_id" id="student_id" class="form-select" required>
+                  <option value="">— Select a student —</option>
+                  {% for enr in enrollments %}
+                    {% if enr.student.id not in assessed_ids %}
+                      <option value="{{ enr.student.id }}"
+                              data-elearn="{{ enr.student.elearn_id }}"
+                              {% if request.args.get('student_id', type=int) == enr.student.id %}selected{% endif %}>
+                        {{ enr.student.last_name }}, {{ enr.student.first_name }}
+                        ({{ enr.student.elearn_id }})
+                      </option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% if not enrollments %}
+                  <div class="form-text text-warning">
+                    No enrolled students found. <a href="{{ url_for('admin.import_enrollments') }}">Import enrollments</a>.
+                  </div>
+                {% endif %}
+              {% endif %}
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Earned Grade</label>
+              <input type="text" name="earned_grade" class="form-control"
+                     maxlength="10" placeholder="A, B+, 92, etc."
+                     value="{{ detail.earned_grade if detail else '' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Artifact File</label>
+              <input type="file" name="artifact" class="form-control"
+                     accept=".pdf,.doc,.docx,.ppt,.pptx">
+              {% if detail and detail.artifact_path %}
+                <div class="form-text">
+                  Current:
+                  <a href="{{ url_for('faculty.serve_artifact_file', batch_id=batch.id, detail_id=detail.id) }}"
+                     target="_blank">
+                    <i class="bi bi-file-earmark"></i> {{ detail.artifact_filename }}
+                  </a>
+                  <br>Upload a new file to replace it.
+                </div>
+              {% else %}
+                <div class="form-text">PDF, DOC, DOCX, PPT, PPTX — max 25 MB</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Rubric scoring section -->
+          <h6 class="fw-bold mb-1">Rubric Scores <span class="text-danger">*</span></h6>
+          <p class="text-muted small mb-3">Click a score for each category. Use keyboard numbers 1–4 when a row is focused.</p>
+
+          <div class="rubric-criteria">
+            {% for criterion in criteria %}
+            <div class="rubric-row" tabindex="0">
+              <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                <div class="rubric-label" style="min-width:220px">
+                  {{ criterion.label }}
+                  <button type="button" class="btn btn-sm btn-link p-0 ms-1 text-muted"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#guide-{{ criterion.code }}"
+                          title="Show rubric guidance">
+                    <i class="bi bi-info-circle"></i>
+                  </button>
+                </div>
+                <div class="score-btn-group btn-group" role="group"
+                     data-field="{{ criterion.code }}"
+                     aria-label="Score for {{ criterion.label }}">
+                  {% for score, label, cls in [
+                    (1,'1 — Unsatisfactory','btn-outline-danger'),
+                    (2,'2 — Minimal','btn-outline-warning'),
+                    (3,'3 — Adequate','btn-outline-primary'),
+                    (4,'4 — Exemplary','btn-outline-success'),
+                  ] %}
+                  <button type="button"
+                          class="btn {{ cls }} score-btn {% if scores.get(criterion.code) == score %}selected active{% endif %}"
+                          data-score="{{ score }}"
+                          tabindex="-1">
+                    {{ label }}
+                  </button>
+                  {% endfor %}
+                </div>
+                <input type="hidden" id="hidden_{{ criterion.code }}"
+                       name="{{ criterion.code }}"
+                       value="{{ scores.get(criterion.code, '') }}">
+              </div>
+
+              <!-- Collapsible guidance -->
+              <div class="collapse mt-2" id="guide-{{ criterion.code }}">
+                <div class="card card-body py-2 small">
+                  <div class="row g-2">
+                    <div class="col-3">
+                      <span class="badge bg-success mb-1">4 — Exemplary</span>
+                      <p class="mb-0">{{ criterion.exemplary_desc }}</p>
+                    </div>
+                    <div class="col-3">
+                      <span class="badge bg-primary mb-1">3 — Adequate</span>
+                      <p class="mb-0">{{ criterion.adequate_desc }}</p>
+                    </div>
+                    <div class="col-3">
+                      <span class="badge bg-warning text-dark mb-1">2 — Minimal</span>
+                      <p class="mb-0">{{ criterion.minimal_desc }}</p>
+                    </div>
+                    <div class="col-3">
+                      <span class="badge bg-danger mb-1">1 — Unsatisfactory</span>
+                      <p class="mb-0">{{ criterion.unsatisfactory_desc }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Submit row -->
+          <div class="d-flex align-items-center gap-3 mt-4 pt-3 border-top">
+            <button type="submit" class="btn btn-{% if detail %}warning{% else %}success{% endif %} px-4 fw-bold">
+              <i class="bi bi-check-circle"></i>
+              {% if detail %}Save Changes{% else %}Save Assessment{% endif %}
+            </button>
+            <a href="{{ url_for('faculty.batch_detail', batch_id=batch.id) }}"
+               class="btn btn-outline-secondary">Cancel</a>
+            <span id="autosave-status" class="ms-auto"></span>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Progress reminder -->
+    {% set done = batch.assessed_count %}
+    {% set total = batch.enrolled_count %}
+    {% if total > 0 %}
+    <div class="card mt-3 shadow-sm">
+      <div class="card-body py-2 d-flex align-items-center gap-3">
+        <span class="text-muted small">Batch progress:</span>
+        <div class="progress flex-grow-1" style="height:12px">
+          <div class="progress-bar {% if done == total %}bg-success{% else %}bg-primary{% endif %}"
+               style="width:{{ (done/total*100)|int }}%"></div>
+        </div>
+        <span class="fw-semibold small">{{ done }}/{{ total }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/rubric.js') }}"></script>
+{% endblock %}

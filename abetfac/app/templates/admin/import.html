@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Import Enrollments{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <h4 class="fw-bold mb-3"><i class="bi bi-upload"></i> Import Enrollment Data</h4>
+
+    {% if results %}
+    <div class="card mb-3 shadow-sm border-{% if results.errors %}warning{% else %}success{% endif %}">
+      <div class="card-header fw-bold {% if results.errors %}bg-warning text-dark{% else %}bg-success text-white{% endif %}">
+        Import Results — {{ results.semester }}
+      </div>
+      <div class="card-body">
+        <p class="mb-1"><strong>{{ results.added }}</strong> enrollment records added.</p>
+        <p class="mb-1"><strong>{{ results.skipped }}</strong> records skipped (already existed).</p>
+        {% if results.errors %}
+        <p class="mb-1 text-danger"><strong>{{ results.errors|length }}</strong> errors:</p>
+        <ul class="small text-danger mb-0">
+          {% for e in results.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold bg-success text-white">
+        <i class="bi bi-file-earmark-csv"></i> Upload CSV
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Semester <span class="text-danger">*</span></label>
+            <select name="semester_id" class="form-select" required>
+              <option value="">— Select semester —</option>
+              {% for s in semesters %}
+                <option value="{{ s.id }}">{{ s.label }}{% if s.is_active %} (Active){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">CSV File <span class="text-danger">*</span></label>
+            <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-upload"></i> Import
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3 shadow-sm">
+      <div class="card-header fw-semibold">Required CSV Format</div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">The CSV must have these column headers (case-insensitive):</p>
+        <table class="table table-sm table-bordered small">
+          <thead class="table-light">
+            <tr><th>Column</th><th>Example</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>elearn_id</code></td><td>1234567</td><td>Student's eLearning/Banner ID</td></tr>
+            <tr><td><code>first_name</code></td><td>Jane</td><td></td></tr>
+            <tr><td><code>last_name</code></td><td>Smith</td><td></td></tr>
+            <tr><td><code>course_id</code></td><td>CE 262</td><td>Must match an existing course</td></tr>
+          </tbody>
+        </table>
+        <p class="small text-muted mb-0">
+          The semester from the dropdown is applied to all rows in the file.
+          You can also use Access-style column names: <code>ELEARN_ID</code>, <code>Student_First</code>, <code>Student_Last</code>, <code>Course</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

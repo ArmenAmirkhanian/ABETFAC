@@ -1,0 +1,9 @@
+<option value="">— Select a student —</option>
+{% for enr in enrollments %}
+  <option value="{{ enr.student.id }}" data-elearn="{{ enr.student.elearn_id }}">
+    {{ enr.student.last_name }}, {{ enr.student.first_name }} ({{ enr.student.elearn_id }})
+  </option>
+{% endfor %}
+{% if not enrollments %}
+  <option value="" disabled>No students enrolled</option>
+{% endif %}

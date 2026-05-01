@@ -1,0 +1,84 @@
+/* ABET Assessment — custom styles */
+
+body {
+  background-color: #f8f9fa;
+}
+
+.navbar-brand {
+  font-size: 1.1rem;
+}
+
+/* Rubric score button groups */
+.rubric-row {
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.75rem 0;
+}
+.rubric-row:last-child {
+  border-bottom: none;
+}
+.rubric-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.score-btn-group .btn {
+  min-width: 140px;
+  font-size: 0.82rem;
+}
+.score-btn-group .btn.active,
+.score-btn-group .btn.selected {
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.4);
+}
+
+/* Score color coding */
+.score-4 { background-color: #198754; color: #fff; }
+.score-3 { background-color: #0d6efd; color: #fff; }
+.score-2 { background-color: #ffc107; color: #000; }
+.score-1 { background-color: #dc3545; color: #fff; }
+.score-none { background-color: #e9ecef; color: #6c757d; }
+
+/* Badge scores in detail tables */
+.score-badge {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Student row in batch detail */
+.student-row-complete {
+  background-color: #f0fff4;
+}
+.student-row-pending {
+  background-color: #fffde7;
+}
+
+/* Autosave indicator */
+#autosave-status {
+  font-size: 0.8rem;
+  color: #6c757d;
+  transition: opacity 0.5s;
+}
+
+/* Login page */
+.login-card {
+  max-width: 400px;
+  margin: 80px auto;
+}
+
+/* Sidebar sticky on large screens */
+@media (min-width: 992px) {
+  .sidebar-sticky {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+/* Progress bar label */
+.progress-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
