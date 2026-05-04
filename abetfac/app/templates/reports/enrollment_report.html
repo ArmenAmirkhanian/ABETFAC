@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Enrollment Dashboard{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+      <div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-graph-up"></i> Enrollment Dashboard</h4>
+        <p class="text-muted small mb-0">Live enrollment totals, semester and course tables, and interactive trend graphs.</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+          <select name="semester_id" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Semesters</option>
+            {% for s in semesters %}
+              <option value="{{ s.id }}" {% if s.id == sem_filter %}selected{% endif %}>{{ s.label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+        <select id="course-filter" class="form-select form-select-sm">
+          {% for c in courses %}
+            <option value="{{ c.id }}" {% if c.id == selected_course_id %}selected{% endif %}>{{ c.id }} — {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="card shadow-sm border-primary-subtle">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Total Enrollments</p>
+            <h2 class="fw-bold mb-0">{{ total_enrollments }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-secondary-subtle">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Unique Students</p>
+            <h2 class="fw-bold mb-0">{{ unique_students }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm border-info-subtle">
+          <div class="card-body">
+            <p class="text-muted small mb-1">Courses With Enrollment</p>
+            <h2 class="fw-bold mb-0">{{ courses_with_enrollment }}</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light">Enrollment by Semester</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Semester</th>
+                <th class="text-end">Enrollments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sem in semester_counts %}
+              <tr>
+                <td>{{ sem.label }}</td>
+                <td class="text-end fw-bold">{{ sem.count }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="2" class="text-center text-muted py-3">No enrollments found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light">Enrollment by Course</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Course</th>
+                <th>Course Name</th>
+                <th class="text-end">Enrollments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for course in course_counts %}
+              <tr>
+                <td class="fw-semibold">{{ course.id }}</td>
+                <td>{{ course.name }}</td>
+                <td class="text-end fw-bold">{{ course.count }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="3" class="text-center text-muted py-3">No enrollments found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold bg-light">Course Enrollment Trend</div>
+      <div class="card-body">
+        {% if selected_course %}
+          <div class="mb-3">
+            <h5 class="mb-1" id="courseTrendTitle">{{ selected_course.id }} — {{ selected_course.name }}</h5>
+            <p class="text-muted small mb-0" id="courseTrendSubtitle">Enrollment change over time for the selected course.</p>
+          </div>
+          <canvas id="courseTrendChart" height="120"></canvas>
+        {% else %}
+          <div class="alert alert-info mb-0">Select a course above to see its enrollment trend over time.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const chartLabels = {{ chart_labels|tojson }};
+  const trendData = {{ trend_data|tojson }};
+  const courseFilter = document.getElementById('course-filter');
+  const chartElement = document.getElementById('courseTrendChart');
+  const titleElement = document.getElementById('courseTrendTitle');
+  const subtitleElement = document.getElementById('courseTrendSubtitle');
+
+  let enrollmentChart = null;
+
+  function buildChart(courseId, courseLabel) {
+    const values = trendData[courseId] || [];
+    if (!chartElement) return;
+    const ctx = chartElement.getContext('2d');
+
+    if (enrollmentChart) {
+      enrollmentChart.data.labels = chartLabels;
+      enrollmentChart.data.datasets[0].label = courseLabel;
+      enrollmentChart.data.datasets[0].data = values;
+      enrollmentChart.update();
+      return;
+    }
+
+    enrollmentChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: courseLabel,
+          data: values,
+          borderColor: '#0d6efd',
+          backgroundColor: 'rgba(13, 110, 253, 0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ticks: { maxRotation: 0, minRotation: 0 }
+          },
+          y: {
+            beginAtZero: true,
+            precision: 0,
+            title: { display: true, text: 'Enrollments' }
+          }
+        }
+      }
+    });
+  }
+
+  if (courseFilter) {
+    courseFilter.addEventListener('change', function() {
+      const selected = this.options[this.selectedIndex];
+      const courseLabel = selected.text;
+      const courseId = this.value;
+      if (!courseId) return;
+      if (titleElement) titleElement.textContent = courseLabel;
+      if (subtitleElement) subtitleElement.textContent = 'Enrollment change over time for the selected course.';
+      buildChart(courseId, courseLabel);
+    });
+  }
+
+  if (chartElement && courseFilter) {
+    const initialCourseId = courseFilter.value || courseFilter.options[0]?.value;
+    const initialCourseLabel = courseFilter.options[courseFilter.selectedIndex]?.text || '';
+    if (initialCourseId) {
+      buildChart(initialCourseId, initialCourseLabel);
+    }
+  }
+</script>
+{% endblock %}
