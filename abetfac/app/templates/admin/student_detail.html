@@ -58,6 +58,49 @@
       </div>
     </div>
 
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light">Assessment Score Averages by Course &amp; Semester</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Semester</th>
+                <th>Course</th>
+                {% for field, label in SCORE_FIELDS %}
+                <th class="text-center small">{{ label }}</th>
+                {% endfor %}
+                <th class="text-center fw-bold">Overall Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in course_sem_avgs %}
+              <tr>
+                <td>{{ row.semester }}</td>
+                <td class="fw-semibold">{{ row.course_id }}<br><span class="text-muted small">{{ row.course_name }}</span></td>
+                {% for field, label in SCORE_FIELDS %}
+                <td class="text-center">
+                  {% set avg = row.field_avgs[field] %}
+                  {% if avg is not none %}
+                    <span class="badge {% if avg >= 3 %}bg-success{% elif avg >= 2 %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ avg }}</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                {% endfor %}
+                <td class="text-center fw-bold">
+                  {% if row.overall is not none %}
+                    <span class="badge {% if row.overall >= 3 %}bg-success{% elif row.overall >= 2 %}bg-warning text-dark{% else %}bg-danger{% endif %} fs-6">{{ row.overall }}</span>
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="card shadow-sm">
       <div class="card-header fw-bold bg-light">Assessment Details</div>
       <div class="card-body p-0">

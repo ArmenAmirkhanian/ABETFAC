@@ -360,11 +360,42 @@ def student_detail(student_id):
     
     if not assessments:
         return render_template('admin/student_no_assessments.html', student=student)
-    
-    return render_template('admin/student_detail.html', 
-                         student=student, 
-                         enrollments=enrollments, 
-                         assessments=assessments)
+
+    SCORE_FIELDS = AssessmentDetail.SCORE_FIELDS
+    _term_order = {'Spring': 0, 'Summer': 1, 'Fall': 2}
+    _buckets = {}
+    for detail, batch, faculty, course, semester in assessments:
+        key = (semester.year, _term_order.get(semester.term, 99), semester.label, course.id, course.name)
+        if key not in _buckets:
+            _buckets[key] = {field: [] for field, _ in SCORE_FIELDS}
+        for field, _ in SCORE_FIELDS:
+            score = getattr(detail, field)
+            if score is not None:
+                _buckets[key][field].append(score)
+
+    course_sem_avgs = []
+    for key in sorted(_buckets):
+        _, _, sem_label, course_id, course_name = key
+        field_avgs = {}
+        all_scores = []
+        for field, _ in SCORE_FIELDS:
+            scores = _buckets[key][field]
+            field_avgs[field] = round(sum(scores) / len(scores), 2) if scores else None
+            all_scores.extend(scores)
+        course_sem_avgs.append({
+            'semester': sem_label,
+            'course_id': course_id,
+            'course_name': course_name,
+            'field_avgs': field_avgs,
+            'overall': round(sum(all_scores) / len(all_scores), 2) if all_scores else None,
+        })
+
+    return render_template('admin/student_detail.html',
+                         student=student,
+                         enrollments=enrollments,
+                         assessments=assessments,
+                         course_sem_avgs=course_sem_avgs,
+                         SCORE_FIELDS=SCORE_FIELDS)
 
 
 @admin_bp.route('/faculty/<int:faculty_id>')
