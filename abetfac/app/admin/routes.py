@@ -377,6 +377,9 @@ def faculty_detail(faculty_id):
         AssessmentBatch.created_at.desc()
     ).all()
     
+    if not batches:
+        return render_template('admin/faculty_no_assessments.html', faculty=faculty)
+    
     # Get assessment details with student and batch info
     assessments = db.session.query(AssessmentDetail, AssessmentBatch, Student, Course, Semester).join(
         AssessmentBatch, AssessmentDetail.batch_id == AssessmentBatch.id
