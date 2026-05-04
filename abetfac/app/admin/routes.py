@@ -357,6 +357,9 @@ def student_detail(student_id):
         AssessmentDetail.student_id == student_id
     ).order_by(AssessmentBatch.created_at.desc()).all()
     
+    if not assessments:
+        return render_template('admin/student_no_assessments.html', student=student)
+    
     return render_template('admin/student_detail.html', 
                          student=student, 
                          enrollments=enrollments, 

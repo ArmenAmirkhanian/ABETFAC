@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.full_name }} — Student Detail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.students') }}">Students</a></li>
+        <li class="breadcrumb-item active">{{ student.full_name }}</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-body text-center py-5">
+        <div class="mb-4">
+          <i class="bi bi-info-circle text-muted" style="font-size: 4rem;"></i>
+        </div>
+        <h4 class="text-muted mb-3">No Assessments Found</h4>
+        <p class="text-muted mb-0">The student has no stored assessments at this time.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
