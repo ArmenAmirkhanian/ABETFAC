@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ faculty.display_name }} — Faculty Detail{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-11">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.users') }}">Users</a></li>
+        <li class="breadcrumb-item active">{{ faculty.display_name }}</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light">
+        <h5 class="mb-0">{{ faculty.display_name }}</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <p><strong>Username:</strong> {{ faculty.username }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Email:</strong> {{ faculty.email or 'N/A' }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Role:</strong> {% if faculty.is_admin %}Administrator{% else %}Faculty{% endif %}</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
+            <p><strong>Total Batches:</strong> {{ faculty.batches.count() }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Total Assessments:</strong> {{ assessments|length }}</p>
+          </div>
+          <div class="col-md-4">
+            <p><strong>Unique Students Assessed:</strong> {{ assessments|map(attribute='3.elearn_id')|list|unique|length }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold bg-light">Assessment Batches</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>SLO</th>
+                <th>Outcome</th>
+                <th>Students Assessed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for batch in batches %}
+              <tr>
+                <td>{{ batch.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="fw-semibold">{{ batch.course_id }}</td>
+                <td>{{ batch.semester.label }}</td>
+                <td><span class="badge bg-info text-dark">{{ batch.slo.code }}</span></td>
+                <td class="small text-muted">{{ batch.outcome_assessed or batch.slo.summary }}</td>
+                <td>{{ batch.assessed_count }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No batches found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold bg-light">All Student Assessments</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Semester</th>
+                <th>SLO</th>
+                <th>Rubric Scores</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for detail, batch, student, course, semester in assessments %}
+              <tr>
+                <td>{{ batch.created_at.strftime('%Y-%m-%d') }}</td>
+                <td class="fw-semibold">{{ student.last_name }}, {{ student.first_name }}<br><small class="text-muted">({{ student.elearn_id }})</small></td>
+                <td>{{ course.id }}</td>
+                <td>{{ semester.label }}</td>
+                <td><span class="badge bg-info text-dark">{{ batch.slo.code }}</span></td>
+                <td>
+                  {% for field, label in detail.SCORE_FIELDS %}
+                    {% set score = getattr(detail, field) %}
+                    {% if score %}
+                      <span class="badge bg-secondary me-1">{{ label }}: {{ score }}</span>
+                    {% endif %}
+                  {% endfor %}
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No assessments found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

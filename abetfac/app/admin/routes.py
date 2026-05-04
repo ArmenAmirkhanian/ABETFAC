@@ -361,3 +361,33 @@ def student_detail(student_id):
                          student=student, 
                          enrollments=enrollments, 
                          assessments=assessments)
+
+
+@admin_bp.route('/faculty/<int:faculty_id>')
+@login_required
+def faculty_detail(faculty_id):
+    _require_admin()
+    faculty = Faculty.query.get_or_404(faculty_id)
+    
+    # Get all batches by this faculty
+    batches = AssessmentBatch.query.filter_by(faculty_id=faculty_id).order_by(
+        AssessmentBatch.created_at.desc()
+    ).all()
+    
+    # Get assessment details with student and batch info
+    assessments = db.session.query(AssessmentDetail, AssessmentBatch, Student, Course, Semester).join(
+        AssessmentBatch, AssessmentDetail.batch_id == AssessmentBatch.id
+    ).join(
+        Student, AssessmentDetail.student_id == Student.id
+    ).join(
+        Course, AssessmentBatch.course_id == Course.id
+    ).join(
+        Semester, AssessmentBatch.semester_id == Semester.id
+    ).filter(
+        AssessmentBatch.faculty_id == faculty_id
+    ).order_by(AssessmentBatch.created_at.desc(), Student.last_name, Student.first_name).all()
+    
+    return render_template('admin/faculty_detail.html', 
+                         faculty=faculty, 
+                         batches=batches, 
+                         assessments=assessments)

@@ -43,6 +43,9 @@
               </td>
               <td class="text-muted small">{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '—' }}</td>
               <td class="text-center" style="white-space:nowrap">
+                <a href="{{ url_for('admin.faculty_detail', faculty_id=u.id) }}" class="btn btn-sm btn-outline-info py-0 px-2" title="View assessments">
+                  <i class="bi bi-eye"></i>
+                </a>
                 <a href="{{ url_for('admin.user_edit', user_id=u.id) }}" class="btn btn-sm btn-outline-primary py-0 px-2">
                   <i class="bi bi-pencil"></i>
                 </a>
