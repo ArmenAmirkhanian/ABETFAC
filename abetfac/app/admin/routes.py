@@ -320,3 +320,44 @@ def import_enrollments():
             results = {'added': added, 'skipped': skipped, 'errors': errors, 'semester': sem.label}
 
     return render_template('admin/import.html', semesters=semesters_list, results=results)
+
+
+# ---------------------------------------------------------------------------  
+# Student management
+# ---------------------------------------------------------------------------
+@admin_bp.route('/students')
+@login_required
+def students():
+    _require_admin()
+    all_students = Student.query.order_by(Student.last_name, Student.first_name).all()
+    return render_template('admin/students.html', students=all_students)
+
+
+@admin_bp.route('/students/<int:student_id>')
+@login_required
+def student_detail(student_id):
+    _require_admin()
+    student = Student.query.get_or_404(student_id)
+    
+    # Get enrollments with semester info
+    enrollments = db.session.query(Enrollment, Semester).join(Semester).filter(
+        Enrollment.student_id == student_id
+    ).order_by(Semester.year.desc(), Semester.term).all()
+    
+    # Get assessment details with batch and faculty info
+    assessments = db.session.query(AssessmentDetail, AssessmentBatch, Faculty, Course, Semester).join(
+        AssessmentBatch, AssessmentDetail.batch_id == AssessmentBatch.id
+    ).join(
+        Faculty, AssessmentBatch.faculty_id == Faculty.id
+    ).join(
+        Course, AssessmentBatch.course_id == Course.id
+    ).join(
+        Semester, AssessmentBatch.semester_id == Semester.id
+    ).filter(
+        AssessmentDetail.student_id == student_id
+    ).order_by(AssessmentBatch.created_at.desc()).all()
+    
+    return render_template('admin/student_detail.html', 
+                         student=student, 
+                         enrollments=enrollments, 
+                         assessments=assessments)
