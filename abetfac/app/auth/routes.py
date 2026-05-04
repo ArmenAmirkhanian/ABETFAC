@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
+from sqlalchemy import func
 from app.models import Faculty
 
 auth_bp = Blueprint('auth', __name__)
@@ -11,11 +12,11 @@ def login():
         return redirect(url_for('faculty.dashboard'))
 
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip().lower()
         password = request.form.get('password', '')
         remember = bool(request.form.get('remember'))
 
-        user = Faculty.query.filter_by(username=username).first()
+        user = Faculty.query.filter(func.lower(Faculty.username) == username).first()
         if user and user.check_password(password):
             login_user(user, remember=remember)
             if user.force_password_reset:

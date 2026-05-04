@@ -63,7 +63,9 @@
             <div class="col-md-6">
               <label class="form-label fw-semibold">Special Attributes</label>
               <input type="text" name="special_attributes" class="form-control"
-                     value="{{ course.special_attributes if course else '' }}">
+                     value="{{ course.special_attributes if course else '' }}"
+                     placeholder="Semicolon-separated values, e.g. Spring Only; Lab Included">
+              <div class="form-text">Use semicolons to separate multiple attributes. Spring Only and Fall Only are highlighted.</div>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Core Designations</label>

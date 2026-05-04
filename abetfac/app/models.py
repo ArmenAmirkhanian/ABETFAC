@@ -114,6 +114,7 @@ class Student(db.Model):
     elearn_id = db.Column(db.String(30), unique=True, nullable=False)
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
+    student_major = db.Column(db.String(50), nullable=False)
 
     enrollments = db.relationship('Enrollment', back_populates='student', lazy='dynamic')
     details = db.relationship('AssessmentDetail', back_populates='student', lazy='dynamic')

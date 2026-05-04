@@ -20,6 +20,7 @@ def seed():
     _seed_rubric_criteria()
     _seed_semesters()
     _seed_admin()
+    _seed_faculty()
     db.session.commit()
     print("Seed data inserted successfully.")
 
@@ -114,19 +115,19 @@ def _seed_courses():
         ('CE 378', 'Water Resources Engineering', 3, 'Lecture', None, None, [cive, enve]),
         ('CE 401+', 'Capstone Design (Site Develop)', 4, 'Lecture/Laboratory Combined', None, 'Computer Science; Experiential Learning; Writing', [cive, cone, enve]),
         ('CE 403+', 'Capstone Design (Bldg Systems)', 4, 'Lecture/Laboratory Combined', None, 'Computer Science; Experiential Learning; Writing', [arche, cive, cone]),
-        ('CE 420', 'Environmental Measurements', 3, 'Laboratory; Lecture', 'Lab Included', None, [cive, enve]),
-        ('CE 422', 'Solid & Hazardous Waste Manag', 3, 'Lecture', None, None, [enve]),
+        ('CE 420', 'Environmental Measurements', 3, 'Laboratory; Lecture', 'Spring Only; Lab Included', None, [cive, enve]),
+        ('CE 422', 'Solid & Hazardous Waste Manag', 3, 'Lecture', 'Fall Only', None, [enve]),
         ('CE 424', 'Water & Wastewater Treatment', 3, 'Lecture', None, None, [cive, enve]),
         ('CE 425', 'Air Quality Engineering', 3, 'Lecture', '400/500-level Listing', None, [enve]),
-        ('CE 433', 'Reinforced Concrete Structures I', 3, 'Lecture', 'Recitation Included', None, [arche, cive]),
+        ('CE 433', 'Reinforced Concrete Structures I', 3, 'Lecture', 'Fall Only; Recitation Included', None, [arche, cive]),
         ('CE 434', 'Structural Steel Design I', 3, 'Lecture', 'Recitation Included', None, [arche, cive]),
         ('CE 451', 'Roadway Intersection Design', 3, 'Lecture', None, None, [cive]),
         ('CE 458', 'Traffic Engineering', 3, 'Lecture/Laboratory Combined', '400/500-level Listing', None, [cive]),
-        ('CE 461', 'Horizontal Construction Methods', 3, 'Lecture', '400/500-level Listing', None, [cone]),
-        ('CE 462', 'Vertical Construction Methods', 3, 'Lecture', '400/500-level Listing', None, [arche, cive, cone]),
-        ('CE 463', 'Construction Cost Estimating', 3, 'Lecture', '400/500-level Listing', None, [cone]),
+        ('CE 461', 'Horizontal Construction Methods', 3, 'Lecture', 'Fall Only; 400/500-level Listing', None, [cone]),
+        ('CE 462', 'Vertical Construction Methods', 3, 'Lecture', 'Spring Only; 400/500-level Listing', None, [arche, cive, cone]),
+        ('CE 463', 'Construction Cost Estimating', 3, 'Lecture', 'Spring Only; 400/500-level Listing', None, [cone]),
         ('CE 464', 'Safety Engineering', 3, 'Lecture', None, None, [cone]),
-        ('CE 468', 'Construction Scheduling', 3, 'Lecture', '400/500-level Listing', None, [cive, cone]),
+        ('CE 468', 'Construction Scheduling', 3, 'Lecture', 'Fall Only; 400/500-level Listing', None, [cive, cone]),
         ('CE 475', 'Hydrology', 3, 'Lecture', None, None, [cive, enve]),
     ]
     for row in courses:
@@ -275,3 +276,60 @@ def _seed_admin():
         db.session.add(admin)
         print("Default admin created — username: admin, password: changeme")
         print("IMPORTANT: Change this password immediately after first login.")
+
+
+def _seed_faculty():
+    users = [
+        ('Sriram Aaleti', 's_aaleti', 'saaleti@eng.ua.edu'),
+        ('Kofi Adanu', 'k_adanu', 'ekadanu@ua.edu'),
+        ('Armen Amirkhanian', 'a_amirkhanian', 'armen.amirkhanian@eng.ua.edu'),
+        ('Barry Battle', 'b_battle', 'bbattle@eng.ua.edu'),
+        ('Robert Bertini', 'r_bertini', 'rbertini@ua.edu'),
+        ('Matthew Blair', 'm_blair', 'mblair4@ua.edu'),
+        ('Steven Burian', 's_burian', 'sburian@ua.edu'),
+        ('Kaiwen Chen', 'k_chen', 'kaiwen.chen@ua.edu'),
+        ('Xiaowei Chen', 'x_chen', 'xchen122@ua.edu'),
+        ('Prabhakar Clement', 'p_clement', 'pclement@ua.edu'),
+        ('Shane Crawford', 's_crawford', 'pscrawford@ua.edu'),
+        ('Thang Dao', 't_dao', 'tdao@eng.ua.edu'),
+        ('Rhiannon Davidson', 'r_davidson', 'rldavidson1@ua.edu'),
+        ('Anisha Deria', 'a_deria', 'aderia@ua.edu'),
+        ('Lisa Duan', 'l_duan', 'qduan@ua.edu'),
+        ('Mark Elliott', 'm_elliott', 'melliott@eng.ua.edu'),
+        ('Mostafa Firouzjaei', 'm_firouzjaei', 'mdfirouzjaei@ua.edu'),
+        ('Shady Gomaa', 's_gomaa', 'sgomaa@ua.edu'),
+        ('Alex Hainen', 'a_hainen', 'ahainen@ua.edu'),
+        ('Daqian Jiang', 'd_jiang', 'djiang6@ua.edu'),
+        ('Peishi Jiang', 'p_jiang', 'peishi.jiang@ua.edu'),
+        ('Steven Jones', 's_jones', 'steven.jones@ua.edu'),
+        ('Hannah Kessler', 'h_kessler', 'hkessler@ua.edu'),
+        ('Mukesh Kumar', 'm_kumar', 'mkumar4@ua.edu'),
+        ('Daan Liang', 'd_liang', 'dliang5@ua.edu'),
+        ('Abhay Lidbe', 'a_lidbe', 'adlilbe@ua.edu'),
+        ('Mesfin Mekonnen', 'm_mekonnen', 'mesfin.mekonnen@ua.edu'),
+        ('Hamed Moftakhari', 'h_moftakhari', 'hmoftakhari@eng.ua.edu'),
+        ('Hamid Moradkhani', 'h_moradkhani', 'hmoradkhani@ua.edu'),
+        ('Mariah Parker', 'm_parker', 'mmparker6@ua.edu'),
+        ('Satya Patra', 's_patra', 'satya.patra@ua.edu'),
+        ('Praveena Penmetsa', 'p_penmetsa', 'ppenmetsa@ua.edu'),
+        ('Mizan Rahman', 'm_rahman', 'mizan.rahman@ua.edu'),
+        ('Christopher Schemel', 'c_schemel', 'cschemel@ua.edu'),
+        ('Lusiana Scott', 'l_scott', 'lscott31@ua.edu'),
+        ('Lea Skelton', 'l_skelton', 'ehskelton@ua.edu'),
+        ('Leigh Terry', 'l_terry', 'leigh.terry@ua.edu'),
+        ('Glenn Tootle', 'g_tootle', 'gatootle@eng.ua.edu'),
+        ('Jialai Wang', 'j_wang', 'jwang@eng.ua.edu'),
+    ]
+
+    for display_name, username, email in users:
+        username = username.lower()
+        if not Faculty.query.filter_by(username=username).first():
+            user = Faculty(
+                username=username,
+                display_name=display_name,
+                email=email,
+                is_admin=False,
+                force_password_reset=True,
+            )
+            user.set_password('changeme123')
+            db.session.add(user)

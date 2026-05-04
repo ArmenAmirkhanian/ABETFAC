@@ -19,6 +19,7 @@
               <th>Course ID</th>
               <th>Name</th>
               <th>Credits</th>
+              <th>Special</th>
               <th>Program</th>
               <th>Core</th>
               <th>SLOs</th>
@@ -31,6 +32,24 @@
               <td class="fw-bold">{{ c.id }}</td>
               <td>{{ c.name }}</td>
               <td class="text-center">{{ c.credit_hours or '—' }}</td>
+              <td>
+                {% if c.special_attributes %}
+                  {% for part in c.special_attributes.split(';') %}
+                    {% set item = part.strip() %}
+                    {% if item %}
+                      {% if item == 'Spring Only' %}
+                        <span class="badge bg-success text-white me-1">{{ item }}</span>
+                      {% elif item == 'Fall Only' %}
+                        <span class="badge bg-danger text-white me-1">{{ item }}</span>
+                      {% else %}
+                        <span class="badge bg-secondary text-white me-1">{{ item }}</span>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                {% else %}
+                  &mdash;
+                {% endif %}
+              </td>
               <td>
                 {% for p in c.programs %}
                   <span class="badge bg-secondary me-1">{{ p.code }}</span>

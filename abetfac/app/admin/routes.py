@@ -270,13 +270,15 @@ def import_enrollments():
 
         for i, row in enumerate(reader, 2):
             try:
-                elearn_id = str(row.get('elearn_id', '') or row.get('ELEARN_ID', '')).strip()
-                first = (row.get('first_name', '') or row.get('Student_First', '')).strip()
-                last = (row.get('last_name', '') or row.get('Student_Last', '')).strip()
-                course_id = (row.get('course_id', '') or row.get('Course', '')).strip().upper()
+                normalized = {k.strip().lower(): (v or '').strip() for k, v in row.items()}
+                elearn_id = normalized.get('elearn_id') or normalized.get('student_id') or normalized.get('studentid') or ''
+                first = normalized.get('first_name') or normalized.get('student_first') or normalized.get('studentfirstname') or ''
+                last = normalized.get('last_name') or normalized.get('student_last') or normalized.get('studentlastname') or ''
+                student_major = normalized.get('student_major') or normalized.get('student major') or normalized.get('major') or ''
+                course_id = (normalized.get('course_id') or normalized.get('course') or normalized.get('course id') or '').upper()
 
-                if not all([elearn_id, first, last, course_id]):
-                    errors.append(f'Row {i}: missing required field(s).')
+                if not all([elearn_id, first, last, student_major, course_id]):
+                    errors.append(f'Row {i}: missing required field(s). Expected elearn_id, first_name, last_name, student_major, course_id.')
                     continue
 
                 course = Course.query.get(course_id)
@@ -286,12 +288,13 @@ def import_enrollments():
 
                 student = Student.query.filter_by(elearn_id=elearn_id).first()
                 if not student:
-                    student = Student(elearn_id=elearn_id, first_name=first, last_name=last)
+                    student = Student(elearn_id=elearn_id, first_name=first, last_name=last, student_major=student_major)
                     db.session.add(student)
                     db.session.flush()
                 else:
                     student.first_name = first
                     student.last_name = last
+                    student.student_major = student_major
 
                 existing = Enrollment.query.filter_by(
                     student_id=student.id, course_id=course_id, semester_id=sem_id
@@ -307,7 +310,13 @@ def import_enrollments():
             except Exception as e:
                 errors.append(f'Row {i}: {e}')
 
-        db.session.commit()
-        results = {'added': added, 'skipped': skipped, 'errors': errors, 'semester': sem.label}
+        try:
+            db.session.commit()
+        except Exception as exc:
+            db.session.rollback()
+            flash(f'Import failed while saving records: {exc}', 'danger')
+            results = {'added': added, 'skipped': skipped, 'errors': errors + [f'Commit error: {exc}'], 'semester': sem.label}
+        else:
+            results = {'added': added, 'skipped': skipped, 'errors': errors, 'semester': sem.label}
 
     return render_template('admin/import.html', semesters=semesters_list, results=results)

@@ -93,6 +93,80 @@
 
 <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}"></script>
+<audio id="alert-sound" preload="auto" style="display:none">
+  <source src="{{ url_for('static', filename='audio/error-fail.mp3') }}" type="audio/mpeg">
+</audio>
+<script>
+let _alertSoundUnlocked = false;
+let _alertSoundPending = false;
+
+function playFallbackTone() {
+  if (!window.AudioContext && !window.webkitAudioContext) {
+    return;
+  }
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(220, ctx.currentTime);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch (err) {
+    console.warn('Unable to play fallback error sound:', err);
+  }
+}
+
+function unlockAlertSound() {
+  if (_alertSoundUnlocked) return;
+  _alertSoundUnlocked = true;
+  const audio = document.getElementById('alert-sound');
+  if (!audio) return;
+  audio.muted = true;
+  audio.play().then(() => {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.muted = false;
+    if (_alertSoundPending) {
+      _alertSoundPending = false;
+      playErrorSound();
+    }
+  }).catch(() => {
+    audio.muted = false;
+  });
+}
+
+function playErrorSound() {
+  const audio = document.getElementById('alert-sound');
+  if (!audio) {
+    playFallbackTone();
+    return;
+  }
+
+  audio.play().catch(() => {
+    if (!_alertSoundUnlocked) {
+      _alertSoundPending = true;
+    } else {
+      playFallbackTone();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.querySelector('.alert-danger')) {
+    playErrorSound();
+  }
+});
+
+document.addEventListener('click', unlockAlertSound, { once: true, capture: true });
+document.addEventListener('keydown', unlockAlertSound, { once: true, capture: true });
+document.addEventListener('touchstart', unlockAlertSound, { once: true, capture: true });
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
