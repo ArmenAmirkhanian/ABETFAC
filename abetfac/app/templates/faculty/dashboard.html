@@ -117,7 +117,11 @@
               <tr>
                 <td class="fw-semibold">{{ c.id }}</td>
                 <td>{{ c.name }}</td>
-                <td>{% if c.program %}<span class="badge bg-secondary">{{ c.program.code }}</span>{% endif %}</td>
+                <td>
+                  {% for p in c.programs %}
+                    <span class="badge bg-secondary me-1">{{ p.code }}</span>
+                  {% endfor %}
+                </td>
                 <td>
                   <a href="{{ url_for('faculty.batch_new', course_id=c.id) }}"
                      class="btn btn-sm btn-outline-secondary">

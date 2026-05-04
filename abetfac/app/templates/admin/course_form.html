@@ -46,16 +46,16 @@
                      value="{{ course.schedule_type if course else '' }}">
             </div>
             <div class="col-md-4">
-              <label class="form-label fw-semibold">Program</label>
-              <select name="program_id" class="form-select">
-                <option value="">— None —</option>
-                {% for p in programs %}
-                  <option value="{{ p.id }}"
-                          {% if course and course.program_id == p.id %}selected{% endif %}>
+              <label class="form-label fw-semibold">Programs</label>
+              {% for p in programs %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="program_ids" value="{{ p.id }}"
+                         {% if course and p in course.programs %}checked{% endif %}>
+                  <label class="form-check-label">
                     {{ p.code }} — {{ p.full_name }}
-                  </option>
-                {% endfor %}
-              </select>
+                  </label>
+                </div>
+              {% endfor %}
             </div>
           </div>
 

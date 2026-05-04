@@ -13,6 +13,13 @@ from app.utils.file_storage import save_artifact, serve_artifact, delete_artifac
 
 faculty_bp = Blueprint('faculty', __name__)
 
+ASSESSMENT_COURSE_IDS = [
+    'CE 262', 'CE 320', 'CE 331', 'CE 340', 'CE 350', 'CE 366', 'CE 378',
+    'CE 401+', 'CE 403+', 'CE 420', 'CE 422', 'CE 424', 'CE 425', 'CE 433',
+    'CE 434', 'CE 451', 'CE 458', 'CE 461', 'CE 462', 'CE 463', 'CE 468',
+    'CE 475',
+]
+
 SCORE_FIELDS = AssessmentDetail.SCORE_FIELDS
 
 
@@ -39,7 +46,10 @@ def dashboard():
             course_batches.setdefault(b.course_id, []).append(b)
         courses_with_batches = [(Course.query.get(cid), bs)
                                 for cid, bs in course_batches.items()]
-        all_courses = Course.query.order_by(Course.id).all()
+        all_courses = (Course.query
+                       .filter(Course.id.in_(ASSESSMENT_COURSE_IDS))
+                       .order_by(Course.id)
+                       .all())
     else:
         batches = (AssessmentBatch.query
                    .filter_by(faculty_id=current_user.id,
@@ -93,7 +103,10 @@ def htmx_students(course_id, sem_id):
 @login_required
 def batch_new():
     semesters = Semester.query.order_by(Semester.year.desc(), Semester.term).all()
-    courses = Course.query.order_by(Course.id).all()
+    courses = (Course.query
+               .filter(Course.id.in_(ASSESSMENT_COURSE_IDS))
+               .order_by(Course.id)
+               .all())
     active_sem = Semester.query.filter_by(is_active=True).first()
 
     if request.method == 'POST':

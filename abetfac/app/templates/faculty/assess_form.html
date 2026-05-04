@@ -46,7 +46,7 @@
                     {% if enr.student.id not in assessed_ids %}
                       <option value="{{ enr.student.id }}"
                               data-elearn="{{ enr.student.elearn_id }}"
-                              {% if request.args.get('student_id', type=int) == enr.student.id %}selected{% endif %}>
+                              {% if request.args.get('student_id') == enr.student.id|string %}selected{% endif %}>
                         {{ enr.student.last_name }}, {{ enr.student.first_name }}
                         ({{ enr.student.elearn_id }})
                       </option>

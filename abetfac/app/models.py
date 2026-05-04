@@ -39,7 +39,7 @@ class Program(db.Model):
     code = db.Column(db.String(20), unique=True, nullable=False)
     full_name = db.Column(db.String(120), nullable=False)
 
-    courses = db.relationship('Course', back_populates='program', lazy='dynamic')
+    courses = db.relationship('Course', secondary='course_programs', back_populates='programs', lazy='dynamic')
 
 
 class SLO(db.Model):
@@ -64,6 +64,12 @@ class PEO(db.Model):
     slo = db.relationship('SLO', back_populates='peos')
 
 
+course_programs = db.Table('course_programs',
+    db.Column('course_id', db.String(20), db.ForeignKey('courses.id'), primary_key=True),
+    db.Column('program_id', db.Integer, db.ForeignKey('programs.id'), primary_key=True)
+)
+
+
 class Course(db.Model):
     __tablename__ = 'courses'
     id = db.Column(db.String(20), primary_key=True)
@@ -72,9 +78,8 @@ class Course(db.Model):
     schedule_type = db.Column(db.String(120))
     special_attributes = db.Column(db.String(255))
     core_designations = db.Column(db.String(255))
-    program_id = db.Column(db.Integer, db.ForeignKey('programs.id'))
 
-    program = db.relationship('Program', back_populates='courses')
+    programs = db.relationship('Program', secondary=course_programs, back_populates='courses')
     course_slos = db.relationship('CourseSLO', back_populates='course', lazy='dynamic')
     enrollments = db.relationship('Enrollment', back_populates='course', lazy='dynamic')
     batches = db.relationship('AssessmentBatch', back_populates='course', lazy='dynamic')

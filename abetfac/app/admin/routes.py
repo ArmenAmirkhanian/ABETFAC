@@ -150,8 +150,9 @@ def course_new():
                 schedule_type=request.form.get('schedule_type', '').strip() or None,
                 special_attributes=request.form.get('special_attributes', '').strip() or None,
                 core_designations=request.form.get('core_designations', '').strip() or None,
-                program_id=request.form.get('program_id', type=int) or None,
             )
+            program_ids = request.form.getlist('program_ids', type=int)
+            course.programs = [Program.query.get(pid) for pid in program_ids if pid]
             db.session.add(course)
             db.session.flush()
             for slo_id in request.form.getlist('slo_ids', type=int):
@@ -181,7 +182,8 @@ def course_edit(course_id):
         course.schedule_type = request.form.get('schedule_type', '').strip() or None
         course.special_attributes = request.form.get('special_attributes', '').strip() or None
         course.core_designations = request.form.get('core_designations', '').strip() or None
-        course.program_id = request.form.get('program_id', type=int) or None
+        program_ids = request.form.getlist('program_ids', type=int)
+        course.programs = [Program.query.get(pid) for pid in program_ids if pid]
 
         # Rebuild SLO mappings
         CourseSLO.query.filter_by(course_id=course_id).delete()

@@ -104,40 +104,49 @@ def _seed_courses():
     arche = Program.query.filter_by(code='ArchE').first()
 
     courses = [
-        # id, name, credits, schedule_type, special_attributes, core_designations, program
-        ('CE 101', 'Introduction to Civil Engineering', 1, 'Lecture', None, None, cive),
-        ('CE 201', 'Engineering Statics', 3, 'Lecture', None, None, cive),
-        ('CE 211', 'Engineering Dynamics', 3, 'Lecture', None, None, cive),
-        ('CE 215', 'Mechanics of Materials', 3, 'Lecture', None, None, cive),
-        ('CE 262', 'Civil & Construction Materials', 3, 'Laboratory, Lecture', 'Lab Included', 'Writing', cive),
-        ('CE 301', 'Structural Analysis', 3, 'Lecture', None, None, cive),
-        ('CE 310', 'Fluid Mechanics', 3, 'Lecture', None, None, cive),
-        ('CE 315', 'Soil Mechanics', 3, 'Laboratory, Lecture', 'Lab Included', None, cive),
-        ('CE 320', 'Transportation Engineering', 3, 'Lecture', None, None, cive),
-        ('CE 325', 'Environmental Engineering', 3, 'Lecture', None, None, enve),
-        ('CE 330', 'Structural Steel Design', 3, 'Lecture', None, None, cive),
-        ('CE 335', 'Reinforced Concrete Design', 3, 'Lecture', None, None, cive),
-        ('CE 340', 'Hydraulics & Hydrology', 3, 'Laboratory, Lecture', 'Lab Included', None, cive),
-        ('CE 350', 'Construction Planning & Scheduling', 3, 'Lecture', None, 'Writing', cone),
-        ('CE 355', 'Construction Cost Estimating', 3, 'Lecture', None, None, cone),
-        ('CE 360', 'Geotechnical Engineering', 3, 'Lecture', None, None, cive),
-        ('CE 401', 'Senior Design I', 2, 'Lecture', None, None, cive),
-        ('CE 402', 'Senior Design II', 3, 'Lecture', None, 'Writing', cive),
-        ('CE 410', 'Water Resources Engineering', 3, 'Lecture', None, None, enve),
-        ('CE 420', 'Foundation Engineering', 3, 'Lecture', None, None, cive),
-        ('CE 430', 'Environmental Site Assessment', 3, 'Lecture', None, None, enve),
-        ('CE 440', 'Construction Management', 3, 'Lecture', None, None, cone),
-        ('CE 450', 'Bridge Design', 3, 'Lecture', None, None, cive),
+        # id, name, credits, schedule_type, special_attributes, core_designations, programs
+        ('CE 262', 'Civil & Construction Materials', 3, 'Laboratory; Lecture', 'Lab Included', None, [arche, cive, cone, enve]),
+        ('CE 320', 'Intro to Environmental Eng', 3, 'Lecture', 'Recitation Included', None, [cive, enve]),
+        ('CE 331', 'Intro to Structural Eng', 3, 'Lecture', None, None, [arche, cive, cone]),
+        ('CE 340', 'Geotechnical Engineering', 4, 'Laboratory; Lecture', 'Lab Included', 'Computer Science; Writing', [arche, cive, cone, enve]),
+        ('CE 350', 'Intro to Transportation Eng', 3, 'Lecture', None, None, [arche, cive]),
+        ('CE 366', 'Intro to Construction Eng', 3, 'Lecture', None, None, [cive, cone]),
+        ('CE 378', 'Water Resources Engineering', 3, 'Lecture', None, None, [cive, enve]),
+        ('CE 401+', 'Capstone Design (Site Develop)', 4, 'Lecture/Laboratory Combined', None, 'Computer Science; Experiential Learning; Writing', [cive, cone, enve]),
+        ('CE 403+', 'Capstone Design (Bldg Systems)', 4, 'Lecture/Laboratory Combined', None, 'Computer Science; Experiential Learning; Writing', [arche, cive, cone]),
+        ('CE 420', 'Environmental Measurements', 3, 'Laboratory; Lecture', 'Lab Included', None, [cive, enve]),
+        ('CE 422', 'Solid & Hazardous Waste Manag', 3, 'Lecture', None, None, [enve]),
+        ('CE 424', 'Water & Wastewater Treatment', 3, 'Lecture', None, None, [cive, enve]),
+        ('CE 425', 'Air Quality Engineering', 3, 'Lecture', '400/500-level Listing', None, [enve]),
+        ('CE 433', 'Reinforced Concrete Structures I', 3, 'Lecture', 'Recitation Included', None, [arche, cive]),
+        ('CE 434', 'Structural Steel Design I', 3, 'Lecture', 'Recitation Included', None, [arche, cive]),
+        ('CE 451', 'Roadway Intersection Design', 3, 'Lecture', None, None, [cive]),
+        ('CE 458', 'Traffic Engineering', 3, 'Lecture/Laboratory Combined', '400/500-level Listing', None, [cive]),
+        ('CE 461', 'Horizontal Construction Methods', 3, 'Lecture', '400/500-level Listing', None, [cone]),
+        ('CE 462', 'Vertical Construction Methods', 3, 'Lecture', '400/500-level Listing', None, [arche, cive, cone]),
+        ('CE 463', 'Construction Cost Estimating', 3, 'Lecture', '400/500-level Listing', None, [cone]),
+        ('CE 464', 'Safety Engineering', 3, 'Lecture', None, None, [cone]),
+        ('CE 468', 'Construction Scheduling', 3, 'Lecture', '400/500-level Listing', None, [cive, cone]),
+        ('CE 475', 'Hydrology', 3, 'Lecture', None, None, [cive, enve]),
     ]
     for row in courses:
-        cid, name, credits, sched, special, core, prog = row
-        if not Course.query.get(cid):
-            db.session.add(Course(
+        cid, name, credits, sched, special, core, progs = row
+        course = Course.query.get(cid)
+        if course:
+            course.name = name
+            course.credit_hours = credits
+            course.schedule_type = sched
+            course.special_attributes = special
+            course.core_designations = core
+            course.programs = progs
+        else:
+            course = Course(
                 id=cid, name=name, credit_hours=credits,
                 schedule_type=sched, special_attributes=special,
-                core_designations=core,
-                program_id=prog.id if prog else None
-            ))
+                core_designations=core
+            )
+            course.programs.extend(progs)
+            db.session.add(course)
 
 
 # ---------------------------------------------------------------------------
@@ -147,24 +156,28 @@ def _seed_course_slos():
     db.session.flush()
     mappings = [
         ('CE 262', ['SO3', 'SO6']),
-        ('CE 301', ['SO1', 'SO2']),
-        ('CE 310', ['SO1', 'SO6']),
-        ('CE 315', ['SO1', 'SO6']),
-        ('CE 320', ['SO1', 'SO3']),
-        ('CE 325', ['SO1', 'SO2', 'SO6']),
-        ('CE 330', ['SO1', 'SO2']),
-        ('CE 335', ['SO1', 'SO2']),
-        ('CE 340', ['SO1', 'SO6']),
-        ('CE 350', ['SO3', 'SO5']),
-        ('CE 355', ['SO1', 'SO5']),
-        ('CE 360', ['SO1', 'SO6']),
-        ('CE 401', ['SO2', 'SO5']),
-        ('CE 402', ['SO2', 'SO3', 'SO4']),
-        ('CE 410', ['SO1', 'SO2', 'SO6']),
-        ('CE 420', ['SO1', 'SO2']),
-        ('CE 430', ['SO1', 'SO6']),
-        ('CE 440', ['SO3', 'SO4', 'SO5']),
-        ('CE 450', ['SO1', 'SO2']),
+        ('CE 320', ['SO1']),
+        ('CE 331', ['SO1']),
+        ('CE 340', ['SO3', 'SO6']),
+        ('CE 350', ['SO1', 'SO4']),
+        ('CE 366', ['SO1', 'SO4']),
+        ('CE 378', ['SO1']),
+        ('CE 401+', ['SO2', 'SO3', 'SO4', 'SO5', 'SO7']),
+        ('CE 403+', ['SO2', 'SO3', 'SO4', 'SO5', 'SO7']),
+        ('CE 420', ['SO5', 'SO6']),
+        ('CE 422', ['SO1']),
+        ('CE 424', ['SO2', 'SO3', 'SO4', 'SO7']),
+        ('CE 425', ['SO2', 'SO3', 'SO4']),
+        ('CE 433', ['SO4']),
+        ('CE 434', ['SO2', 'SO7']),
+        ('CE 451', ['SO2']),
+        ('CE 458', ['SO2']),
+        ('CE 461', ['SO1']),
+        ('CE 462', ['SO2', 'SO7']),
+        ('CE 463', ['SO4', 'SO5']),
+        ('CE 464', ['SO1', 'SO4']),
+        ('CE 468', ['SO2']),
+        ('CE 475', ['SO2', 'SO7']),
     ]
     for course_id, slo_codes in mappings:
         for code in slo_codes:

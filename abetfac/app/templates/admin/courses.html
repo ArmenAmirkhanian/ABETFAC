@@ -31,7 +31,11 @@
               <td class="fw-bold">{{ c.id }}</td>
               <td>{{ c.name }}</td>
               <td class="text-center">{{ c.credit_hours or '—' }}</td>
-              <td>{% if c.program %}<span class="badge bg-secondary">{{ c.program.code }}</span>{% else %}—{% endif %}</td>
+              <td>
+                {% for p in c.programs %}
+                  <span class="badge bg-secondary me-1">{{ p.code }}</span>
+                {% endfor %}
+              </td>
               <td class="small text-muted">{{ c.core_designations or '—' }}</td>
               <td>
                 {% for cs in c.course_slos.all() %}
