@@ -41,7 +41,7 @@ def index():
 @login_required
 def users():
     _require_admin()
-    all_users = Faculty.query.order_by(Faculty.display_name).all()
+    all_users = sorted(Faculty.query.all(), key=lambda u: u.display_name.split()[-1].lower())
     return render_template('admin/users.html', users=all_users)
 
 
