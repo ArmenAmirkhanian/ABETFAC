@@ -3,7 +3,7 @@ import io
 from flask import (Blueprint, render_template, redirect, url_for, flash,
                    request, abort)
 from flask_login import login_required, current_user
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app import db
 from app.models import (Faculty, Course, Program, Semester, Enrollment,
                         Student, SLO, CourseSLO, RubricCriterion,
@@ -75,6 +75,9 @@ def user_new():
             except IntegrityError:
                 db.session.rollback()
                 error = 'That email address is already used by another user.'
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                error = f'Database error: {e}'
 
     return render_template('admin/user_form.html', error=error, user=None)
 
@@ -113,6 +116,9 @@ def user_edit(user_id):
             except IntegrityError:
                 db.session.rollback()
                 error = 'That email address is already used by another user.'
+            except SQLAlchemyError as e:
+                db.session.rollback()
+                error = f'Database error: {e}'
 
     return render_template('admin/user_form.html', error=error, user=user)
 
