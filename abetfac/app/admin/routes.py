@@ -3,6 +3,7 @@ import io
 from flask import (Blueprint, render_template, redirect, url_for, flash,
                    request, abort)
 from flask_login import login_required, current_user
+from sqlalchemy.exc import IntegrityError
 from app import db
 from app.models import (Faculty, Course, Program, Semester, Enrollment,
                         Student, SLO, CourseSLO, RubricCriterion,
@@ -67,9 +68,13 @@ def user_new():
                            email=email, is_admin=is_admin, force_password_reset=True)
             user.set_password(password)
             db.session.add(user)
-            db.session.commit()
-            flash(f'User "{display_name}" created. They will be prompted to change their password on first login.', 'success')
-            return redirect(url_for('admin.users'))
+            try:
+                db.session.commit()
+                flash(f'User "{display_name}" created. They will be prompted to change their password on first login.', 'success')
+                return redirect(url_for('admin.users'))
+            except IntegrityError:
+                db.session.rollback()
+                error = 'That email address is already used by another user.'
 
     return render_template('admin/user_form.html', error=error, user=None)
 
@@ -82,22 +87,32 @@ def user_edit(user_id):
     error = None
 
     if request.method == 'POST':
-        user.display_name = request.form.get('display_name', '').strip()
-        user.email = request.form.get('email', '').strip() or None
-        user.is_admin = bool(request.form.get('is_admin'))
+        display_name = request.form.get('display_name', '').strip()
+        email = request.form.get('email', '').strip() or None
 
-        new_password = request.form.get('new_password', '').strip()
-        if new_password:
-            if len(new_password) < 8:
-                error = 'Password must be at least 8 characters.'
-            else:
-                user.set_password(new_password)
-                user.force_password_reset = True
+        if not display_name:
+            error = 'Display name is required.'
+        else:
+            user.display_name = display_name
+            user.email = email
+            user.is_admin = bool(request.form.get('is_admin'))
+
+            new_password = request.form.get('new_password', '').strip()
+            if new_password:
+                if len(new_password) < 8:
+                    error = 'Password must be at least 8 characters.'
+                else:
+                    user.set_password(new_password)
+                    user.force_password_reset = True
 
         if not error:
-            db.session.commit()
-            flash(f'User "{user.display_name}" updated.', 'success')
-            return redirect(url_for('admin.users'))
+            try:
+                db.session.commit()
+                flash(f'User "{user.display_name}" updated.', 'success')
+                return redirect(url_for('admin.users'))
+            except IntegrityError:
+                db.session.rollback()
+                error = 'That email address is already used by another user.'
 
     return render_template('admin/user_form.html', error=error, user=user)
 

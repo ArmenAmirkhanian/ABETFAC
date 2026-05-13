@@ -15,7 +15,8 @@ class Faculty(UserMixin, db.Model):
     force_password_reset = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
-    batches = db.relationship('AssessmentBatch', back_populates='faculty', lazy='dynamic')
+    batches = db.relationship('AssessmentBatch', back_populates='faculty',
+                              cascade='all, delete-orphan', lazy='dynamic')
 
     def set_password(self, password):
         self.password_hash = bcrypt.hashpw(
