@@ -33,5 +33,15 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        _migrate_schema(db)
 
     return app
+
+
+def _migrate_schema(db):
+    """Add columns introduced after initial schema creation."""
+    with db.engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(db.text('PRAGMA table_info(faculty)'))}
+        if 'last_login' not in existing:
+            conn.execute(db.text('ALTER TABLE faculty ADD COLUMN last_login DATETIME'))
+            conn.commit()

@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy import func
-from app.models import Faculty
+from app import db
+from app.models import Faculty, LoginHistory
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -18,6 +20,10 @@ def login():
 
         user = Faculty.query.filter(func.lower(Faculty.username) == username).first()
         if user and user.check_password(password):
+            now = datetime.now(timezone.utc)
+            user.last_login = now
+            db.session.add(LoginHistory(faculty_id=user.id, logged_in_at=now))
+            db.session.commit()
             login_user(user, remember=remember)
             if user.force_password_reset:
                 flash('Please change your password before continuing.', 'warning')

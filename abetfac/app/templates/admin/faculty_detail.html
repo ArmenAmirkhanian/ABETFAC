@@ -29,6 +29,23 @@
         </div>
         <div class="row">
           <div class="col-md-4">
+            <p><strong>Last Login:</strong> {{ faculty.last_login.strftime('%Y-%m-%d %H:%M') if faculty.last_login else 'Never' }}</p>
+          </div>
+          <div class="col-md-8">
+            <p class="mb-1"><strong>Recent Logins:</strong></p>
+            {% if recent_logins %}
+              <ul class="list-unstyled mb-0 small text-muted">
+                {% for entry in recent_logins %}
+                  <li>{{ entry.logged_in_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="small text-muted mb-0">No login history recorded.</p>
+            {% endif %}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4">
             <p><strong>Total Batches:</strong> {{ faculty.batches.count() }}</p>
           </div>
           <div class="col-md-4">

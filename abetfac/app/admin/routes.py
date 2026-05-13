@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app import db
 from app.models import (Faculty, Course, Program, Semester, Enrollment,
                         Student, SLO, CourseSLO, RubricCriterion,
-                        AssessmentBatch, AssessmentDetail)
+                        AssessmentBatch, AssessmentDetail, LoginHistory)
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -430,9 +430,14 @@ def faculty_detail(faculty_id):
         AssessmentBatch.created_at.desc()
     ).all()
     
+    recent_logins = LoginHistory.query.filter_by(faculty_id=faculty_id).order_by(
+        LoginHistory.logged_in_at.desc()
+    ).limit(5).all()
+
     if not batches:
-        return render_template('admin/faculty_no_assessments.html', faculty=faculty)
-    
+        return render_template('admin/faculty_no_assessments.html', faculty=faculty,
+                               recent_logins=recent_logins)
+
     # Get assessment details with student and batch info
     assessments = db.session.query(AssessmentDetail, AssessmentBatch, Student, Course, Semester).join(
         AssessmentBatch, AssessmentDetail.batch_id == AssessmentBatch.id
@@ -445,8 +450,9 @@ def faculty_detail(faculty_id):
     ).filter(
         AssessmentBatch.faculty_id == faculty_id
     ).order_by(AssessmentBatch.created_at.desc(), Student.last_name, Student.first_name).all()
-    
-    return render_template('admin/faculty_detail.html', 
-                         faculty=faculty, 
-                         batches=batches, 
-                         assessments=assessments)
+
+    return render_template('admin/faculty_detail.html',
+                         faculty=faculty,
+                         batches=batches,
+                         assessments=assessments,
+                         recent_logins=recent_logins)

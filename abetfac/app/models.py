@@ -14,9 +14,12 @@ class Faculty(UserMixin, db.Model):
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     force_password_reset = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_login = db.Column(db.DateTime, nullable=True)
 
     batches = db.relationship('AssessmentBatch', back_populates='faculty',
                               cascade='all, delete-orphan', lazy='dynamic')
+    login_history = db.relationship('LoginHistory', back_populates='faculty',
+                                    cascade='all, delete-orphan', lazy='dynamic')
 
     def set_password(self, password):
         self.password_hash = bcrypt.hashpw(
@@ -32,6 +35,15 @@ class Faculty(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(Faculty, int(user_id))
+
+
+class LoginHistory(db.Model):
+    __tablename__ = 'login_history'
+    id = db.Column(db.Integer, primary_key=True)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty.id'), nullable=False)
+    logged_in_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    faculty = db.relationship('Faculty', back_populates='login_history')
 
 
 class Program(db.Model):
